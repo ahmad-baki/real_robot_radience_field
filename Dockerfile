@@ -18,13 +18,25 @@ ENV PATH="$PATH:/root/git/bin"
 
 
 # Nerfstudio requirements  https://github.com/nerfstudio-project/nerfstudio -->
-RUN mamba create --name nerfstudio -y python=3.8 &&\
-    # mamba activate nerfstudio &&\
-    pip install --upgrade pip &&\
-    mamba install -n nerfstudio pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 pytorch-cuda=11.8 -c pytorch -c nvidia -y &&\
-    mamba install -n nerfstudio -c "nvidia/label/cuda-11.8.0" cuda-toolkit -y &&\
-    mamba install -n nerfstudio ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch -y && \
-    mamba install -n nerfstudio nerfstudio -y
+
+# First approach
+#RUN mamba create --name nerfstudio -y python=3.8 &&\
+    # # mamba activate nerfstudio &&\
+    # pip install --upgrade pip &&\
+    # mamba install -n nerfstudio pytorch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 pytorch-cuda=11.8 -c pytorch -c nvidia -y &&\
+    # mamba install -n nerfstudio -c "nvidia/label/cuda-11.8.0" cuda-toolkit -y &&\
+    # mamba install -n nerfstudio ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch -y && \
+    # mamba install -n nerfstudio nerfstudio -y
+    
+# Second approach:
+RUN apt-get install curl -y &&\
+    curl -fsSL https://pixi.sh/install.sh | bash &&\
+    git clone https://github.com/nerfstudio-project/nerfstudio.git &&\
+    cd nerfstudio
+#ENV PATH="$PATH:/root/.pixi/bin"
+WORKDIR /root/.pixi/bin
+RUN ls /root/.pixi/bin/ &&\
+    /root/.pixi/bin/pixi run post-install 
 # Nerfstudio requirements <--
 
 # Installing ROS1
