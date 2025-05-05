@@ -1,0 +1,20 @@
+FROM ghcr.io/nerfstudio-project/nerfstudio:latest
+ENV DEBIAN_FRONTEND=noninteractive
+
+COPY hello.sh /
+
+ENV PIP_ROOT_USER_ACTION=ignore
+
+# Installing ROS1 https://wiki.ros.org/rosdep
+RUN apt-get install python3-rosdep && \ 
+    rosdep init && \ 
+    rosdep update && \
+# Installing catkin (maybe)
+    apt install catkin -y
+
+# Hello World
+RUN chmod +x /hello.sh
+
+CMD ["catkin", "build nerf_teleoperation"]
+CMD ["source", "devel/setup.bash"]
+CMD ["/hello.sh"]
