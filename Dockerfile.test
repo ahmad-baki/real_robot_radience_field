@@ -5,16 +5,32 @@ COPY hello.sh /
 
 ENV PIP_ROOT_USER_ACTION=ignore
 
-# Installing ROS1 https://wiki.ros.org/rosdep
-RUN apt-get install python3-rosdep && \ 
-    rosdep init && \ 
-    rosdep update && \
-# Installing catkin (maybe)
-    apt install catkin -y
+## Installing rosdep https://wiki.ros.org/rosdep
+#RUN sudo apt update &&\
+#    pip install -U rosdep &&\
+#    rosdep init && \ 
+#    rosdep update && \
+## Installing catkin (maybe)
+#    apt install catkin -y
 
-# Hello World
+RUN apt-get update &&\
+    apt install ros-desktop-full -y
+
+# Step 3 (incomplete)
+# RUN apt update &&\
+#    apt install -y \
+#    python3-rosdep \
+#    python3-rosinstall-generator \
+#    python3-vcstool \
+#    build-essential \
+#    git &&\
+#    sudo rosdep init &&\
+#    rosdep update
+
+
+
 RUN chmod +x /hello.sh
 
-CMD ["catkin", "build nerf_teleoperation"]
-CMD ["source", "devel/setup.bash"]
+#CMD ["catkin", "build nerf_teleoperation"]
+#CMD ["source", "devel/setup.bash"]
 CMD ["/hello.sh"]
