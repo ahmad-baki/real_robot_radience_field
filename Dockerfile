@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8.0-cudnn8-runtime-ubuntu22.04
+FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY hello.sh /
@@ -11,12 +11,13 @@ ENV PIP_ROOT_USER_ACTION=ignore
 
 # Installing Mamba with miniforge https://github.com/conda-forge/miniforge?tab=readme-ov-file#as-part-of-a-ci-pipeline
 RUN apt-get update && apt-get install -y --no-install-recommends wget && rm -rf /var/lib/apt/lists/* && \
-    wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" && \
+    wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh" --no-check-certificate && \
    bash Miniforge3.sh -b -p "${HOME}/conda"
 ENV PATH="$PATH:/root/conda/bin"
 
 # installing git and updating apt
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E1DD270288B4E6030699E45FA1715D88E1DF1F24 && \
+RUN apt-get update && apt-get install -y gnupg2 &&\
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E1DD270288B4E6030699E45FA1715D88E1DF1F24 && \
     su -c "echo 'deb http://ppa.launchpad.net/git-core/ppa/ubuntu trusty main' > /etc/apt/sources.list.d/git.list" && \
     apt-get update &&\
     apt-get install git -y
@@ -52,12 +53,17 @@ ENV PATH="/root/conda/envs/nerfstudio/bin:${PATH}"
 ENV CONDA_DEFAULT_ENV=nerfstudio
 RUN pip install --upgrade pip &&\
     pip uninstall torch torchvision functorch tinycudann  &&\
-    pip install torch==2.1.2+cu118 torchvision==0.16.2+cu118 --extra-index-url https://download.pytorch.org/whl/cu118 &&\
+    pip3 install torch==2.1.2 torchvision==0.16.2 &&\
+    # --index-url https://download.pytorch.org/whl/cu118 --use-deprecated=legacy-resolver &&\
     mamba install -n nerfstudio -c "nvidia/label/cuda-11.8.0" cuda-toolkit -y &&\
     pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch -y && \
     pip install nerfstudio -y
 
-
+# 4. Approach
+RUN git clone https://github.com/nerfstudio-project/nerfstudio.git
+WORKDIR /nerfstudio
+RUN pip install --upgrade pip setuptools &&\
+    pip install -e .
 
 # Nerfstudio requirements <--
 

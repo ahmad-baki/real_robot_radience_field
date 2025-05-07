@@ -1,36 +1,30 @@
-FROM ghcr.io/nerfstudio-project/nerfstudio:latest
+FROM ghcr.io/nerfstudio-project/nerfstudio:main
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY hello.sh /
 
 ENV PIP_ROOT_USER_ACTION=ignore
 
-## Installing rosdep https://wiki.ros.org/rosdep
-#RUN sudo apt update &&\
-#    pip install -U rosdep &&\
-#    rosdep init && \ 
-#    rosdep update && \
-## Installing catkin (maybe)
-#    apt install catkin -y
+## 1. Installing ROS1
 
 RUN apt-get update &&\
     apt install ros-desktop-full -y
 
-# Step 3 (incomplete)
-# RUN apt update &&\
-#    apt install -y \
-#    python3-rosdep \
-#    python3-rosinstall-generator \
-#    python3-vcstool \
-#    build-essential \
-#    git &&\
-#    sudo rosdep init &&\
-#    rosdep update
+## 1.2Install Catkin (not sure whether nec)
+#RUN git clone https://github.com/catkin/catkin_tools.git
+#WORKDIR catkin_tools
+#RUN pip3 install -r requirements.txt --upgrade &&\
+#    python3 setup.py install --record install_manifest.txt&&\
+#    python3 setup.py develop
 
 
+# 2. Install pipeline-project
+RUN mkdir -p /workspace/src
+WORKDIR /workspace/src
+RUN git clone https://github.com/leggedrobotics/radiance_field_ros.git .
+WORKDIR /workspace
+# catkin build nerf_teleoperation + "source the workspace"
 
 RUN chmod +x /hello.sh
 
-#CMD ["catkin", "build nerf_teleoperation"]
-#CMD ["source", "devel/setup.bash"]
 CMD ["/hello.sh"]

@@ -1,0 +1,50 @@
+# 1) Base image: CUDA 11.8 on Ubuntu 20.04
+FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 2) Add ROS Noetic APT repo and key
+RUN apt-get update && \
+    apt-get install -y curl gnupg2 lsb-release && \
+    curl -sSL "https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc" | apt-key add - && \
+    echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" \
+      > /etc/apt/sources.list.d/ros1-latest.list
+
+# 3) Install ROS Noetic Desktop-Full, dev tools, and OpenGL libraries
+RUN apt-get update && \
+    apt-get install -y \
+      ros-noetic-desktop-full \
+      #python3-rosdep \
+      #python3-rosinstall \
+      #python3-rosinstall-generator \
+      #python3-wstool \
+      #build-essential \
+      python3-catkin-tools \
+      git \
+      #vim \
+      #nano \
+      python3-pip &&\
+      #python3-opencv \
+      #libgl1-mesa-glx \
+      #libgl1-mesa-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# 4) Initialize rosdep
+RUN rosdep init && rosdep update
+
+# 5) Install Python ML deps (PyTorch, tiny-cuda-nn, NerfStudio)
+RUN python3 -m pip install --upgrade pip && \
+    python3 -m pip install \
+      torch==2.1.2+cu118 \
+      torchvision==0.16.2+cu118 \
+      --extra-index-url https://download.pytorch.org/whl/cu118 && \
+    python3 -m pip install ninja git+https://github.com/NVlabs/tiny-cuda-nn/#subdirectory=bindings/torch && \
+    python3 -m pip install nerfstudio
+
+# 6) Create a catkin workspace and clone the project
+RUN mkdir -p /workspace/src
+WORKDIR /workspace/src
+RUN git clone https://github.com/leggedrobotics/radiance_field_ros.git .
+WORKDIR /workspace
+
+# 7) Install ROS package dependencies via rosd
